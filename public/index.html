@@ -1,0 +1,1034 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>NET-WATCH // GLOBAL INTEL</title>
+    
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            /* ✅ COLOR THEME UPDATE (ONLY COLORS CHANGED) */
+            --bg-color: #070422;
+            --panel-bg: rgba(20, 12, 56, 0.82);
+            --border: 1px solid rgba(204, 214, 255, 0.10);
+
+            --accent-cyan: #22d3ee;
+            --accent-red: #ff4d6d;
+            --accent-green: #34d399;
+            --accent-purple: #a78bfa;
+
+            --text-main: #f1f5ff;
+            --text-muted: #a7b0d6;
+
+            /* NEW (purely visual) */
+            --panel-bg-2: rgba(10, 6, 28, 0.55);
+            --shadow-lg: 0 22px 60px rgba(0,0,0,0.45);
+            --shadow-md: 0 14px 30px rgba(0,0,0,0.35);
+
+            --glow-cyan: 0 0 0 1px rgba(34,211,238,0.22), 0 0 28px rgba(34,211,238,0.18);
+            --glow-red: 0 0 0 1px rgba(255,77,109,0.18), 0 0 28px rgba(255,77,109,0.14);
+            --glow-green: 0 0 0 1px rgba(52,211,153,0.18), 0 0 28px rgba(52,211,153,0.14);
+        }
+
+        * { box-sizing: border-box; scrollbar-width: thin; scrollbar-color: rgba(167,176,214,0.35) transparent; }
+
+        body {
+            margin: 0; padding: 20px;
+            background-color: var(--bg-color);
+            background-image:
+                radial-gradient(circle at 12% 18%, rgba(34, 211, 238, 0.14) 0%, transparent 45%),
+                radial-gradient(circle at 88% 82%, rgba(255, 77, 109, 0.12) 0%, transparent 45%),
+                radial-gradient(circle at 50% 55%, rgba(52, 211, 153, 0.10) 0%, transparent 48%),
+                radial-gradient(circle at 45% 10%, rgba(167, 139, 250, 0.10) 0%, transparent 40%);
+            color: var(--text-main); font-family: 'Inter', sans-serif;
+            height: 100vh; overflow: hidden; display: flex; flex-direction: column;
+        }
+
+        /* =========================
+           SPLASH OVERLAY (NO LAYOUT CHANGES)
+           ========================= */
+        #splash {
+            position: fixed;
+            inset: 0;
+            z-index: 999999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background:
+                radial-gradient(circle at 12% 18%, rgba(34, 211, 238, 0.20) 0%, transparent 45%),
+                radial-gradient(circle at 88% 82%, rgba(255, 77, 109, 0.18) 0%, transparent 45%),
+                radial-gradient(circle at 50% 55%, rgba(52, 211, 153, 0.14) 0%, transparent 48%),
+                radial-gradient(circle at 45% 10%, rgba(167, 139, 250, 0.14) 0%, transparent 40%),
+                #070422;
+            overflow: hidden;
+        }
+
+        #splashCanvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+
+        #splashHint {
+            position: absolute;
+            bottom: 28px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.75rem;
+            color: rgba(241,245,255,0.75);
+            letter-spacing: 0.4px;
+            background: rgba(0,0,0,0.25);
+            border: 1px solid rgba(255,255,255,0.08);
+            padding: 10px 14px;
+            border-radius: 999px;
+            backdrop-filter: blur(10px);
+            pointer-events: none;
+        }
+
+        /* HEADER */
+        header {
+            display: flex; justify-content: space-between; align-items: center;
+            padding-bottom: 16px;
+            border-bottom: 1px solid rgba(241,245,255,0.08);
+            margin-bottom: 18px;
+            height: 80px;
+            flex-shrink: 0;
+        }
+
+        .brand {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.55rem;
+            font-weight: 800;
+            letter-spacing: -1.2px;
+            display: flex; align-items: center; gap: 10px;
+            position: relative;
+        }
+        .brand span { color: var(--accent-cyan); text-shadow: 0 0 18px rgba(34,211,238,0.25); }
+
+        .brand::after{
+            content:"";
+            position:absolute;
+            left:0;
+            bottom:-10px;
+            width: 70px;
+            height: 2px;
+            background: linear-gradient(90deg, rgba(34,211,238,0.9), rgba(167,139,250,0.30), transparent);
+            opacity: 0.95;
+        }
+
+        .header-controls { display: flex; gap: 10px; align-items: center; }
+
+        .btn {
+            background: rgba(255,255,255,0.03);
+            color: var(--accent-cyan);
+            border: 1px solid rgba(34,211,238,0.30);
+            padding: 6px 14px;
+            border-radius: 10px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.78rem;
+            text-decoration: none;
+            transition: all 0.25s ease;
+            display: inline-flex;
+            align-items: center;
+            height: 34px;
+            cursor: pointer;
+            backdrop-filter: blur(10px);
+        }
+        .btn:hover {
+            background: rgba(34,211,238,0.12);
+            border-color: rgba(34,211,238,0.55);
+            box-shadow: var(--glow-cyan);
+            transform: translateY(-1px);
+        }
+        .btn:active { transform: translateY(0px); }
+
+        .btn-primary {
+            background: linear-gradient(135deg, rgba(167,139,250,0.95), rgba(34,211,238,0.85));
+            color: #0a0620;
+            border: none;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            box-shadow: 0 16px 30px rgba(167,139,250,0.18);
+        }
+        .btn-primary:hover {
+            background: linear-gradient(135deg, rgba(34,211,238,0.95), rgba(167,139,250,0.88));
+            box-shadow: 0 18px 38px rgba(34,211,238,0.22);
+        }
+
+        /* SEARCH */
+        .search-container { display: flex; gap: 10px; width: 35%; position: relative; }
+        input {
+            flex: 1;
+            background: rgba(10, 6, 28, 0.40);
+            border: 1px solid rgba(167,176,214,0.22);
+            color: white;
+            padding: 10px 14px;
+            border-radius: 12px;
+            font-family: 'JetBrains Mono', monospace;
+            outline: none;
+            transition: all 0.25s ease;
+            backdrop-filter: blur(10px);
+        }
+        input::placeholder { color: rgba(167,176,214,0.78); }
+        input:focus {
+            border-color: rgba(34,211,238,0.75);
+            box-shadow: var(--glow-cyan);
+        }
+
+        /* DASHBOARD LAYOUT */
+        .dashboard {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            flex: 1;
+            min-height: 0;
+            max-width: 1400px;
+            margin: 0 auto;
+            width: 100%;
+        }
+        .left-panel { display: flex; flex-direction: column; gap: 20px; height: 100%; min-height: 0; }
+        .right-panel { display: flex; flex-direction: column; height: 100%; min-height: 0; }
+
+        /* STATS */
+        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+
+        .card {
+            background: linear-gradient(180deg, rgba(20, 12, 56, 0.88), rgba(10, 6, 28, 0.58));
+            border: 1px solid rgba(204, 214, 255, 0.10);
+            padding: 16px;
+            border-radius: 14px;
+            text-align: center;
+            box-shadow: var(--shadow-md);
+            position: relative;
+            overflow: hidden;
+        }
+        .card::before{
+            content:"";
+            position:absolute;
+            inset:-1px;
+            border-radius: 14px;
+            padding: 1px;
+            background: linear-gradient(135deg, rgba(34,211,238,0.18), rgba(255,77,109,0.10), rgba(52,211,153,0.12));
+            -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            pointer-events:none;
+        }
+
+        .card-val { font-size: 1.95rem; font-weight: 900; display: block; line-height: 1; margin-bottom: 6px; }
+        .card-lbl { font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1.2px; }
+
+        .grade-card {
+            background: linear-gradient(180deg, rgba(20, 12, 56, 0.88), rgba(10, 6, 28, 0.58));
+            border: 1px solid rgba(204, 214, 255, 0.10);
+            border-radius: 14px;
+            padding: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: var(--shadow-md);
+            position: relative;
+            overflow: hidden;
+        }
+        .grade-card::before{
+            content:"";
+            position:absolute;
+            inset:-1px;
+            border-radius: 14px;
+            padding: 1px;
+            background: linear-gradient(135deg, rgba(52,211,153,0.20), rgba(34,211,238,0.14), rgba(167,139,250,0.14));
+            -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            pointer-events:none;
+        }
+
+        .grade-circle {
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            border: 4px solid var(--accent-green);
+            color: var(--accent-green);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.1rem;
+            font-weight: 900;
+            box-shadow: var(--glow-green);
+            background: rgba(0,0,0,0.15);
+        }
+        
+        /* SOVEREIGNTY METER */
+        .sov-container {
+            padding: 16px;
+            background: linear-gradient(180deg, rgba(20, 12, 56, 0.88), rgba(10, 6, 28, 0.58));
+            border: 1px solid rgba(204, 214, 255, 0.10);
+            border-radius: 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            box-shadow: var(--shadow-md);
+            position: relative;
+            overflow: hidden;
+        }
+        .sov-container::before{
+            content:"";
+            position:absolute;
+            inset:-1px;
+            border-radius: 14px;
+            padding: 1px;
+            background: linear-gradient(135deg, rgba(34,211,238,0.16), rgba(255,77,109,0.10), rgba(52,211,153,0.14));
+            -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            pointer-events:none;
+        }
+
+        .sov-bar-bg {
+            width: 100%;
+            height: 10px;
+            background: rgba(167,176,214,0.22);
+            border-radius: 999px;
+            overflow: hidden;
+            margin-top: 6px;
+            border: 1px solid rgba(204, 214, 255, 0.10);
+        }
+        .sov-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, rgba(255,77,109,0.95), rgba(34,211,238,0.92), rgba(52,211,153,0.95));
+            width: 0%;
+            transition: width 0.5s;
+            border-radius: 999px;
+            box-shadow: 0 0 18px rgba(34,211,238,0.10);
+        }
+        .sov-labels {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.7rem;
+            color: rgba(167,176,214,0.92);
+            font-family: 'JetBrains Mono';
+            letter-spacing: 0.2px;
+        }
+
+        /* CHART */
+        .chart-container {
+            background: linear-gradient(180deg, rgba(20, 12, 56, 0.90), rgba(10, 6, 28, 0.58));
+            border: 1px solid rgba(204, 214, 255, 0.10);
+            border-radius: 16px;
+            padding: 20px;
+            flex: 1;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            box-shadow: var(--shadow-lg);
+            overflow: hidden;
+        }
+        .chart-container::before{
+            content:"";
+            position:absolute;
+            inset:-1px;
+            border-radius: 16px;
+            padding: 1px;
+            background: linear-gradient(135deg, rgba(34,211,238,0.16), rgba(167,139,250,0.16), rgba(255,77,109,0.10));
+            -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            pointer-events:none;
+        }
+        .chart-wrapper { flex: 1; position: relative; min-height: 0; }
+        canvas { width: 100% !important; height: 100% !important; }
+
+        /* LOGS */
+        .logs-panel {
+            flex: 1;
+            background: linear-gradient(180deg, rgba(20, 12, 56, 0.90), rgba(10, 6, 28, 0.58));
+            border: 1px solid rgba(204, 214, 255, 0.10);
+            border-radius: 16px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            box-shadow: var(--shadow-lg);
+            position: relative;
+            min-height: 0; /* IMPORTANT for scroll */
+        }
+        .logs-panel::before{
+            content:"";
+            position:absolute;
+            inset:-1px;
+            border-radius: 16px;
+            padding: 1px;
+            background: linear-gradient(135deg, rgba(255,77,109,0.12), rgba(34,211,238,0.14), rgba(52,211,153,0.12));
+            -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            pointer-events:none;
+        }
+
+        .logs-header {
+            padding: 14px 16px;
+            background: rgba(255,255,255,0.03);
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.78rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-shrink: 0;
+        }
+
+        #logs {
+            flex: 1;
+            overflow-y: auto; /* scroll restored */
+            padding: 0;
+            min-height: 0; /* IMPORTANT for scroll */
+        }
+
+        .log-entry {
+            padding: 12px 16px;
+            border-bottom: 1px solid rgba(255,255,255,0.04);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.75rem;
+            transition: background 0.18s ease;
+            position: relative;
+        }
+        .log-entry:hover { background: rgba(255,255,255,0.03); }
+        .log-top { display: flex; justify-content: space-between; margin-bottom: 6px; align-items: center; gap: 10px; }
+        .domain { color: var(--text-main); font-weight: 700; }
+        .badge-tracker {
+            display: inline-block;
+            background: rgba(255, 77, 109, 0.18);
+            color: var(--accent-red);
+            padding: 2px 8px;
+            border-radius: 999px;
+            font-size: 0.62rem;
+            margin-right: 8px;
+            border: 1px solid rgba(255, 77, 109, 0.28);
+            letter-spacing: 0.6px;
+        }
+        .violation-row {
+            color: rgba(255,77,109,0.96);
+            padding-left: 10px;
+            border-left: 2px solid rgba(255,77,109,0.75);
+            margin-top: 6px;
+            opacity: 0.95;
+        }
+        .evidence-btn {
+            background: rgba(52, 211, 153, 0.10);
+            color: var(--accent-green);
+            border: 1px solid rgba(52, 211, 153, 0.25);
+            padding: 3px 10px;
+            border-radius: 999px;
+            cursor: pointer;
+            font-size: 0.62rem;
+            margin-left: 10px;
+            transition: all 0.2s ease;
+        }
+        .evidence-btn:hover {
+            background: rgba(52,211,153,0.22);
+            box-shadow: var(--glow-green);
+            transform: translateY(-1px);
+        }
+
+        /* STATUS BADGE */
+        .status-badge {
+            background: rgba(34,211,238,0.12) !important;
+            color: var(--accent-cyan) !important;
+            padding: 7px 12px !important;
+            border-radius: 999px !important;
+            font-family: 'JetBrains Mono' !important;
+            font-size: 0.75rem !important;
+            border: 1px solid rgba(34,211,238,0.22) !important;
+            box-shadow: 0 10px 22px rgba(0,0,0,0.25);
+            white-space: nowrap;
+        }
+
+        /* SUGGESTIONS BOX (keep your inline style, but enhance children look) */
+        #suggestions { box-shadow: 0 22px 40px rgba(0,0,0,0.45); backdrop-filter: blur(10px); }
+        #suggestions .sug-item:hover { background: rgba(34,211,238,0.14); }
+
+        /* MODALS */
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.78); backdrop-filter: blur(8px); z-index: 2000; align-items: center; justify-content: center; }
+        .modal {
+            background: linear-gradient(180deg, rgba(20,12,56,0.92), rgba(10,6,28,0.78));
+            border: 1px solid rgba(34,211,238,0.26);
+            width: 640px;
+            max-width: 92%;
+            max-height: 82vh;
+            border-radius: 16px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            box-shadow: 0 30px 80px rgba(0,0,0,0.55), 0 0 40px rgba(34,211,238,0.10);
+        }
+        .modal-header {
+            padding: 14px 16px;
+            background: rgba(34, 211, 238, 0.10);
+            border-bottom: 1px solid rgba(34, 211, 238, 0.16);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-shrink: 0;
+        }
+        .modal-title { font-family: 'JetBrains Mono'; color: var(--accent-cyan); font-weight: 800; letter-spacing: 0.2px; }
+        .modal-close { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); color: white; border-radius: 10px; width: 36px; height: 36px; font-size: 1.3rem; cursor: pointer; }
+        .modal-close:hover { border-color: rgba(34,211,238,0.45); box-shadow: var(--glow-cyan); }
+        .modal-body { padding: 18px; overflow-y: auto; font-family: 'JetBrains Mono'; font-size: 0.8rem; color: #d7dcff; word-wrap: break-word; white-space: pre-wrap; min-height: 0; }
+        
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(167,176,214,0.35); border-radius: 3px; }
+    </style>
+</head>
+<body>
+
+    <!-- SPLASH OVERLAY ONLY -->
+    <div id="splash">
+        <canvas id="splashCanvas"></canvas>
+        <div id="splashHint">Initializing privasee…</div>
+    </div>
+
+    <div class="modal-overlay" id="evidenceModal">
+        <div class="modal">
+            <div class="modal-header">
+                <span class="modal-title">📂 EVIDENCE LOCKER</span>
+                <button class="modal-close" onclick="closeModal('evidenceModal')">&times;</button>
+            </div>
+            <div class="modal-body" id="evidenceContent"></div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="cookieModal">
+        <div class="modal">
+            <div class="modal-header">
+                <span class="modal-title">🍪 COOKIE FORENSICS</span>
+                <button class="modal-close" onclick="closeModal('cookieModal')">&times;</button>
+            </div>
+            <div class="modal-body" id="cookieContent">Waiting for scan completion...</div>
+        </div>
+    </div>
+
+    <header>
+        <div class="brand">/// NET<span>WATCH</span></div>
+        <div class="search-container">
+            <input type="text" id="urlInput" placeholder="Target URL (e.g. https://netflix.com)" value="https://instagram.com">
+            <button class="btn btn-primary" onclick="startAudit()">SCAN</button>
+
+            <div id="suggestions" style="
+                position: absolute;
+                top: 60px;
+                width: 100%;
+                max-height: 220px;
+                overflow-y: auto;
+                background: rgba(0,0,0,0.85);
+                border: 1px solid rgba(255,255,255,0.08);
+                border-radius: 8px;
+                display: none;
+                z-index: 9999;
+                font-family: 'JetBrains Mono', monospace;
+            "></div>
+        </div>
+        <div class="header-controls">
+            <button class="btn" onclick="openCookieModal()">🍪 COOKIES</button>
+            <button class="btn" onclick="downloadReport()">⬇ PDF</button>
+            <a href="map.html" class="btn">LIVE MAP ➔</a>
+            <div class="status-badge" style="background: rgba(6,182,212,0.1); color: var(--accent-cyan); padding: 5px 12px; border-radius: 4px; font-family: 'JetBrains Mono'; font-size: 0.8rem; border: 1px solid rgba(6,182,212,0.2);" id="status">SYSTEM READY</div>
+        </div>
+    </header>
+
+    <div class="dashboard" id="dashboard-area">
+        <div class="left-panel">
+            <div class="stats-grid">
+                <div style="display: flex; flex-direction: column; gap: 15px;">
+                    <div class="card">
+                        <span class="card-val" id="reqCount" style="color: var(--accent-cyan)">0</span>
+                        <span class="card-lbl">Total Requests</span>
+                    </div>
+                    <div class="card">
+                        <span class="card-val" id="violationCount" style="color: var(--accent-red)">0</span>
+                        <span class="card-lbl">Violations</span>
+                    </div>
+                </div>
+                
+                <div style="display: flex; flex-direction: column; gap: 15px;">
+                    <div class="grade-card" style="flex:1">
+                        <div class="grade-circle" id="gradeCircle">A</div>
+                        <div style="text-align: right;">
+                            <div style="font-weight: 600; font-size: 1.1rem;">Compliance</div>
+                            <div style="font-size: 0.7rem; color: var(--text-muted);">DPDP Act</div>
+                        </div>
+                    </div>
+                    
+                    <div class="sov-container">
+                        <div class="sov-labels">
+                            <span>DATA LOCALIZATION</span>
+                            <span id="sovText">0% INDIA</span>
+                        </div>
+                        <div class="sov-bar-bg">
+                            <div class="sov-bar-fill" id="sovBar"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="logs-panel">
+                <div class="logs-header">
+                    <span>LIVE TRAFFIC FEED</span>
+                    <span id="secureBadge" style="color: var(--text-muted)">WAITING...</span>
+                </div>
+                <div id="logs"></div>
+            </div>
+        </div>
+
+        <div class="right-panel">
+            <div class="chart-container">
+                <div style="font-family: 'JetBrains Mono'; font-size: 0.9rem; color: var(--text-muted); margin-bottom: 15px; text-transform: uppercase;">Violation Category Analysis</div>
+                <div class="chart-wrapper">
+                    <canvas id="violationChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // =========================
+        // PARTICLE SPLASH (overlay only)
+        // =========================
+        (function () {
+            const splash = document.getElementById('splash');
+            const canvas = document.getElementById('splashCanvas');
+            const ctx = canvas.getContext('2d');
+
+            const IMAGE_SRC = 'splash.png'; // put image in same folder as index.html
+
+            let W = 0, H = 0, dpr = window.devicePixelRatio || 1;
+
+            function resize() {
+                W = window.innerWidth;
+                H = window.innerHeight;
+                canvas.style.width = W + 'px';
+                canvas.style.height = H + 'px';
+                canvas.width = Math.floor(W * dpr);
+                canvas.height = Math.floor(H * dpr);
+                ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+            }
+            window.addEventListener('resize', resize);
+
+            const SAMPLE_STEP = 4;
+            const PARTICLE_SIZE = 2;
+            const SPEED_MIN = 0.06;
+            const SPEED_MAX = 0.12;
+
+            const particles = [];
+            let startTime = null;
+            let assembled = false;
+            let assembleTime = null;
+
+            function easeOutCubic(t){ return 1 - Math.pow(1 - t, 3); }
+
+            function randEdgePos() {
+                const side = Math.floor(Math.random() * 4);
+                if (side === 0) return { x: Math.random() * W, y: -30 };
+                if (side === 1) return { x: W + 30, y: Math.random() * H };
+                if (side === 2) return { x: Math.random() * W, y: H + 30 };
+                return { x: -30, y: Math.random() * H };
+            }
+
+            function createParticlesFromImage(img) {
+                const off = document.createElement('canvas');
+                const octx = off.getContext('2d');
+
+                const maxW = Math.min(W * 0.78, 1100);
+                const maxH = Math.min(H * 0.55, 520);
+                const scale = Math.min(maxW / img.width, maxH / img.height);
+
+                const drawW = Math.floor(img.width * scale);
+                const drawH = Math.floor(img.height * scale);
+                const dx = Math.floor((W - drawW) / 2);
+                const dy = Math.floor((H - drawH) / 2);
+
+                off.width = drawW;
+                off.height = drawH;
+                octx.drawImage(img, 0, 0, drawW, drawH);
+
+                const data = octx.getImageData(0, 0, drawW, drawH).data;
+
+                particles.length = 0;
+
+                for (let y = 0; y < drawH; y += SAMPLE_STEP) {
+                    for (let x = 0; x < drawW; x += SAMPLE_STEP) {
+                        const i = (y * drawW + x) * 4;
+                        const r = data[i], g = data[i+1], b = data[i+2], a = data[i+3];
+                        if (a > 40) {
+                            const start = randEdgePos();
+                            const speed = SPEED_MIN + Math.random() * (SPEED_MAX - SPEED_MIN);
+
+                            particles.push({
+                                x: start.x,
+                                y: start.y,
+                                tx: dx + x,
+                                ty: dy + y,
+                                c: `rgba(${r},${g},${b},${a/255})`,
+                                s: speed,
+                                done: false
+                            });
+                        }
+                    }
+                }
+            }
+
+            function frame(now) {
+                ctx.clearRect(0, 0, W, H);
+
+                // soft vignette
+                const grad = ctx.createRadialGradient(W/2, H/2, Math.min(W,H)*0.1, W/2, H/2, Math.min(W,H)*0.65);
+                grad.addColorStop(0, 'rgba(255,255,255,0.03)');
+                grad.addColorStop(1, 'rgba(0,0,0,0.55)');
+                ctx.fillStyle = grad;
+                ctx.fillRect(0, 0, W, H);
+
+                let allDone = true;
+
+                const t = Math.min(1, (now - startTime) / 1600);
+                const k = easeOutCubic(t);
+
+                for (const p of particles) {
+                    if (!p.done) {
+                        const dx = p.tx - p.x;
+                        const dy = p.ty - p.y;
+                        const dist = Math.sqrt(dx*dx + dy*dy);
+                        if (dist < 0.6) {
+                            p.x = p.tx; p.y = p.ty; p.done = true;
+                        } else {
+                            allDone = false;
+                            p.x += dx * (p.s * k);
+                            p.y += dy * (p.s * k);
+                        }
+                    }
+                    ctx.fillStyle = p.c;
+                    ctx.fillRect(p.x, p.y, PARTICLE_SIZE, PARTICLE_SIZE);
+                }
+
+                if (allDone && !assembled) {
+                    assembled = true;
+                    assembleTime = now;
+                }
+
+                if (assembled && now - assembleTime > 1000) {
+                    splash.style.transition = 'opacity 400ms ease';
+                    splash.style.opacity = '0';
+                    setTimeout(() => splash.remove(), 420);
+                    return;
+                }
+
+                requestAnimationFrame(frame);
+            }
+
+            function start() {
+                resize();
+                const img = new Image();
+                img.src = IMAGE_SRC;
+                img.onload = () => {
+                    createParticlesFromImage(img);
+                    startTime = performance.now();
+                    requestAnimationFrame(frame);
+                };
+                img.onerror = () => splash.remove();
+            }
+
+            start();
+        })();
+    </script>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io();
+
+        // ===== SEARCH SUGGESTIONS (NO DB, NO TOP-SITES LIST) =====
+        const HISTORY_KEY = "netwatch_url_history";
+        const MAX_HISTORY = 12;
+
+        function normalizeUrl(input) {
+            let url = (input || "").trim();
+            if (!url) return "";
+            if (!url.startsWith("http")) url = "https://" + url;
+            return url;
+        }
+
+        function getHistory() {
+            try { return JSON.parse(localStorage.getItem(HISTORY_KEY)) || []; }
+            catch { return []; }
+        }
+
+        function saveToHistory(url) {
+            const u = normalizeUrl(url);
+            if (!u) return;
+
+            let history = getHistory();
+            history = history.filter(x => x !== u);
+            history.unshift(u);
+            history = history.slice(0, MAX_HISTORY);
+
+            localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
+        }
+
+        function renderSuggestions(filterText = "") {
+            const box = document.getElementById("suggestions");
+            const input = document.getElementById("urlInput");
+            if (!box || !input) return;
+
+            const history = getHistory();
+            const f = (filterText || "").toLowerCase();
+
+            const results = history.filter(u => u.toLowerCase().includes(f));
+            if (results.length === 0) {
+                box.style.display = "none";
+                return;
+            }
+
+            box.innerHTML = results.map(u => `
+                <div class="sug-item" data-url="${u}" style="
+                    padding: 10px 12px;
+                    cursor: pointer;
+                    border-bottom: 1px solid rgba(255,255,255,0.05);
+                    color: #e2e8f0;
+                ">${u}</div>
+            `).join("");
+
+            box.style.display = "block";
+
+            box.querySelectorAll(".sug-item").forEach(item => {
+                item.addEventListener("click", () => {
+                    input.value = item.getAttribute("data-url");
+                    box.style.display = "none";
+                    input.focus();
+                });
+            });
+        }
+
+        function hideSuggestions() {
+            const box = document.getElementById("suggestions");
+            if (box) box.style.display = "none";
+        }
+
+        function initSuggestions() {
+            const input = document.getElementById("urlInput");
+            if (!input) return;
+
+            input.addEventListener("focus", () => renderSuggestions(input.value));
+            input.addEventListener("input", () => renderSuggestions(input.value));
+
+            document.addEventListener("click", (e) => {
+                const box = document.getElementById("suggestions");
+                if (!box) return;
+                if (e.target.id === "urlInput" || box.contains(e.target)) return;
+                hideSuggestions();
+            });
+
+            input.addEventListener("keydown", (e) => {
+                if (e.key === "Escape") hideSuggestions();
+            });
+        }
+        
+        // --- CHART SETUP ---
+        const ctx = document.getElementById('violationChart').getContext('2d');
+        const violationChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: ['Ad Tracking', 'Insecure HTTP', 'Hidden Trackers', 'PII Leaks'],
+                datasets: [{
+                    label: 'Violations', data: [0, 0, 0, 0],
+                    backgroundColor: ['rgba(244, 63, 94, 0.8)', 'rgba(249, 115, 22, 0.8)', 'rgba(168, 85, 247, 0.8)', 'rgba(234, 179, 8, 0.8)'],
+                    borderColor: ['#f43f5e', '#f97316', '#a855f7', '#eab308'],
+                    borderWidth: 2, borderRadius: 6, borderSkipped: false
+                }]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: { beginAtZero: true, grid: { color: 'rgba(148, 163, 184, 0.1)', drawBorder: false }, ticks: { color: '#94a3b8', font: { family: 'JetBrains Mono', size: 10 } } },
+                    x: { grid: { display: false }, ticks: { color: '#e2e8f0', font: { family: 'Inter', size: 11, weight: 600 } } }
+                }
+            }
+        });
+
+        // --- STATE VARIABLES ---
+        let totalRequests = 0;
+        let indiaRequests = 0; // New for Sovereignty
+        let totalViolations = 0;
+        let score = 100;
+        let violationStats = { tracking: 0, http: 0, hidden: 0, pii: 0 };
+        let cookieData = [];
+
+        // --- MODAL LOGIC ---
+        function showEvidence(payload) {
+            const content = document.getElementById('evidenceContent');
+            try { content.innerHTML = JSON.stringify(JSON.parse(payload), null, 4); } 
+            catch (e) { content.innerText = payload; }
+            document.getElementById('evidenceModal').style.display = 'flex';
+        }
+
+        function openCookieModal() {
+            document.getElementById('cookieModal').style.display = 'flex';
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).style.display = 'none';
+        }
+
+        // --- COOKIE HANDLER ---
+        socket.on('cookie-update', (cookies) => {
+            cookieData = cookies;
+            const content = document.getElementById('cookieContent');
+            
+            if(cookies.length === 0) {
+                content.innerHTML = "✅ No Cookies Detected (Rare!)";
+                return;
+            }
+
+            let html = `<div style="margin-bottom:10px; color:var(--accent-green)">${cookies.length} Cookies Found</div>`;
+            
+            cookies.forEach(c => {
+                const isPersistent = c.expires !== -1;
+                const riskColor = isPersistent ? '#f43f5e' : '#10b981';
+                const type = isPersistent ? 'PERSISTENT (TRACKING RISK)' : 'SESSION (SAFE)';
+                
+                html += `
+                <div style="border:1px solid #334155; padding:10px; margin-bottom:5px; border-radius:4px; font-size:0.7rem;">
+                    <div style="display:flex; justify-content:space-between; color:${riskColor}; font-weight:bold;">
+                        <span>${c.name}</span>
+                        <span>${type}</span>
+                    </div>
+                    <div style="color:#64748b; margin-top:2px;">Domain: ${c.domain}</div>
+                </div>`;
+            });
+            content.innerHTML = html;
+        });
+
+        // --- SECURITY HANDLER ---
+        socket.on('security-update', (data) => {
+            const badge = document.getElementById('secureBadge');
+            badge.innerHTML = `🔒 ${data.protocol} | Valid`;
+            badge.style.color = 'var(--accent-green)';
+        });
+
+        // --- MAIN TRAFFIC HANDLER ---
+        function processTrafficData(data) {
+            totalRequests++;
+            if(data.geo.country === 'India') indiaRequests++; // Update Sovereignty count
+
+            // Update Sovereignty UI
+            const sovPercent = Math.round((indiaRequests / totalRequests) * 100);
+            document.getElementById('sovText').innerText = `${sovPercent}% INDIA`;
+            document.getElementById('sovBar').style.width = `${sovPercent}%`;
+            
+            const isViolation = data.violations.length > 0;
+            if(isViolation) {
+                totalViolations++;
+                score -= 2;
+                if(data.isTracker) score -= 3;
+                data.violations.forEach(v => {
+                    if (v.issue.includes('3rd Party')) violationStats.tracking++;
+                    else if (v.issue.includes('HTTP')) violationStats.http++;
+                    else if (v.issue.includes('Hidden')) violationStats.hidden++;
+                    else if (v.issue.includes('PII')) violationStats.pii++;
+                });
+                updateChart();
+            }
+            if(score < 0) score = 0;
+            updateStats();
+
+            const logsDiv = document.getElementById('logs');
+            const entry = document.createElement('div');
+            entry.className = 'log-entry';
+            
+            let issuesHtml = '';
+            data.violations.forEach(v => { issuesHtml += `<div class="violation-row">${v.issue}</div>`; });
+            const trackerBadge = data.isTracker ? '<span class="badge-tracker">TRACKER</span>' : '';
+            
+            let evidenceBtn = '';
+            if (data.payload && data.payload.length > 2) {
+                const safePayload = data.payload.replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+                evidenceBtn = `<button class="evidence-btn" onclick="showEvidence('${safePayload}')">VIEW EVIDENCE</button>`;
+            }
+
+            entry.innerHTML = `
+                <div class="log-top">
+                    <div>${trackerBadge}<span class="domain">${data.domain}</span>${evidenceBtn}</div>
+                    <div style="color:#64748b">${data.geo.country}</div>
+                </div>
+                ${issuesHtml}
+            `;
+            logsDiv.prepend(entry);
+        }
+
+        async function downloadReport() {
+            const element = document.getElementById('dashboard-area');
+            const btn = document.querySelector('button[onclick="downloadReport()"]');
+            const originalText = btn.innerText;
+            btn.innerText = "GENERATING...";
+            const canvas = await html2canvas(element, { backgroundColor: '#070422', scale: 2 });
+            const imgData = canvas.toDataURL('image/png');
+            const pdf = new jspdf.jsPDF('l', 'mm', 'a4');
+            pdf.setFont("monospace"); pdf.setTextColor(34, 211, 238);
+            pdf.text("NET-WATCH // AUDIT REPORT", 10, 10);
+            const imgProps = pdf.getImageProperties(imgData);
+            const pdfWidth = pdf.internal.pageSize.getWidth() - 20;
+            const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+            pdf.addImage(imgData, 'PNG', 10, 20, pdfWidth, pdfHeight);
+            pdf.save("DPDP_Audit_Report.pdf");
+            btn.innerText = originalText;
+        }
+
+        function startAudit() {
+            const url = document.getElementById('urlInput').value;
+            if(!url) return;
+
+            saveToHistory(url);
+            hideSuggestions();
+
+            document.getElementById('logs').innerHTML = '';
+            document.getElementById('status').innerText = 'SCANNING NETWORK...';
+            document.getElementById('cookieContent').innerHTML = "Scanning...";
+            totalRequests = 0; indiaRequests = 0; totalViolations = 0; score = 100;
+            violationStats = { tracking: 0, http: 0, hidden: 0, pii: 0 };
+            updateChart(); updateStats();
+            document.getElementById('sovBar').style.width = '0%';
+            socket.emit('start-tracking', url);
+        }
+
+        socket.on('traffic-update', (data) => processTrafficData(data));
+        socket.on('traffic-history', (history) => history.forEach(data => processTrafficData(data)));
+        socket.on('connect', () => socket.emit('request-history'));
+        socket.on('status', (msg) => {
+            document.getElementById('status').innerText = msg;
+            if(msg.includes("Complete")) document.getElementById('status').style.color = 'var(--text-main)';
+        });
+
+        function updateStats() {
+            document.getElementById('reqCount').innerText = totalRequests;
+            document.getElementById('violationCount').innerText = totalViolations;
+            const circle = document.getElementById('gradeCircle');
+            let grade = 'A', color = 'var(--accent-green)';
+            if (score < 90) { grade = 'B'; color = 'var(--accent-cyan)'; }
+            if (score < 70) { grade = 'C'; color = '#f59e0b'; } 
+            if (score < 50) { grade = 'D'; color = '#f97316'; } 
+            if (score < 30) { grade = 'F'; color = 'var(--accent-red)'; }
+            circle.innerText = grade; circle.style.borderColor = color; circle.style.color = color;
+        }
+
+        function updateChart() {
+            violationChart.data.datasets[0].data = [violationStats.tracking, violationStats.http, violationStats.hidden, violationStats.pii];
+            violationChart.update();
+        }
+
+        // Init suggestions feature
+        initSuggestions();
+    </script>
+</body>
+</html>

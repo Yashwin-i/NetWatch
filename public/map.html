@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>NET-WATCH // LIVE GLOBE</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --bg-color: #020617;
+      --panel-bg: rgba(15, 23, 42, 0.65);
+      --border: 1px solid rgba(148, 163, 184, 0.12);
+      --accent-cyan: #06b6d4;
+      --accent-red: #f43f5e;
+      --accent-green: #10b981;
+      --text-main: #e2e8f0;
+      --text-muted: #64748b;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      font-family: 'Inter', sans-serif;
+      color: var(--text-main);
+      background:
+        radial-gradient(circle at 12% 18%, rgba(6,182,212,0.18) 0%, transparent 40%),
+        radial-gradient(circle at 85% 80%, rgba(244,63,94,0.12) 0%, transparent 40%),
+        radial-gradient(circle at 55% 55%, rgba(16,185,129,0.10) 0%, transparent 45%),
+        #020617;
+    }
+
+    header {
+      height: 60px;
+      flex-shrink: 0;
+      padding: 14px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: linear-gradient(90deg, rgba(2, 6, 23, 0.92), rgba(15, 23, 42, 0.75));
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      backdrop-filter: blur(10px);
+      z-index: 1000;
+    }
+
+    .brand {
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 700;
+      letter-spacing: -1px;
+      font-size: 1.15rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .brand span { color: var(--accent-cyan); }
+
+    .back-btn {
+      background: rgba(255,255,255,0.03);
+      color: var(--text-main);
+      border: 1px solid rgba(148, 163, 184, 0.25);
+      padding: 8px 14px;
+      border-radius: 10px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.8rem;
+      text-decoration: none;
+      transition: all 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      backdrop-filter: blur(10px);
+    }
+
+    .back-btn:hover {
+      border-color: rgba(6,182,212,0.6);
+      box-shadow: 0 0 18px rgba(6,182,212,0.18);
+      transform: translateY(-1px);
+    }
+
+    #globe-container {
+      position: relative;
+      flex: 1;
+      min-height: 0;
+    }
+
+    #globe {
+      position: absolute;
+      inset: 0;
+    }
+
+    /* subtle grid overlay */
+    #globe-container::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      z-index: 5;
+      pointer-events: none;
+      background-image:
+        linear-gradient(to right, rgba(255,255,255,0.018) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(255,255,255,0.018) 1px, transparent 1px);
+      background-size: 70px 70px;
+      opacity: 0.18;
+      mix-blend-mode: screen;
+      animation: drift 18s linear infinite;
+    }
+
+    @keyframes drift {
+      from { background-position: 0 0; }
+      to { background-position: 140px 140px; }
+    }
+
+    /* vignette */
+    #globe-container::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      z-index: 6;
+      pointer-events: none;
+      background: radial-gradient(circle at 50% 50%, transparent 55%, rgba(0,0,0,0.55) 100%);
+    }
+
+    .map-overlay {
+      position: absolute;
+      bottom: 26px;
+      left: 26px;
+      z-index: 50;
+      max-width: 420px;
+      background: rgba(2, 6, 23, 0.72);
+      border: 1px solid rgba(255,255,255,0.10);
+      border-radius: 14px;
+      padding: 14px 16px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.8rem;
+      backdrop-filter: blur(12px);
+      box-shadow: 0 20px 40px rgba(0,0,0,0.35);
+    }
+
+    .map-overlay:before {
+      content: "";
+      position: absolute;
+      inset: -1px;
+      border-radius: 14px;
+      padding: 1px;
+      background: linear-gradient(135deg, rgba(6,182,212,0.35), rgba(244,63,94,0.25), rgba(16,185,129,0.25));
+      -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+      -webkit-mask-composite: xor;
+      mask-composite: exclude;
+      pointer-events: none;
+    }
+
+    .overlay-title {
+      color: var(--text-muted);
+      font-size: 0.7rem;
+      margin-bottom: 6px;
+    }
+
+    #country-list {
+      color: white;
+      font-weight: 700;
+      line-height: 1.35;
+      word-break: break-word;
+    }
+
+    .hint {
+      position: absolute;
+      top: 16px;
+      right: 18px;
+      z-index: 50;
+      background: rgba(2, 6, 23, 0.60);
+      border: 1px solid rgba(255,255,255,0.10);
+      border-radius: 12px;
+      padding: 10px 12px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.75rem;
+      color: rgba(226,232,240,0.85);
+      backdrop-filter: blur(10px);
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="brand">/// NET<span>WATCH</span> GLOBE</div>
+    <a href="index.html" class="back-btn"><span>&larr;</span> DASHBOARD</a>
+  </header>
+
+  <div id="globe-container">
+    <div id="globe"></div>
+
+    <div class="hint">Drag to rotate • Scroll to zoom</div>
+
+    <div class="map-overlay">
+      <div class="overlay-title">ACTIVE DATA EXFILTRATION PATHS</div>
+      <div id="country-list">Waiting for data...</div>
+    </div>
+  </div>
+
+  <!-- socket.io (your backend serves this) -->
+  <script src="/socket.io/socket.io.js"></script>
+
+  <!-- Globe.gl (3D) -->
+  <script src="https://unpkg.com/three@0.160.0/build/three.min.js"></script>
+  <script src="https://unpkg.com/globe.gl@2.32.1/dist/globe.gl.min.js"></script>
+
+  <script>
+    const socket = io();
+
+    // ORIGIN (India)
+    const ORIGIN = { lat: 20.5937, lng: 78.9629, country: "India" };
+
+    // --- DATA STORES ---
+    let activeCountries = new Set();
+    let arcs = [];
+    let points = [];
+    let polygons = [];
+    const highlighted = new Map(); // country -> { type: 'tracker'|'normal' }
+
+    // --- INIT GLOBE ---
+    const globeEl = document.getElementById('globe');
+    const Globe = window.Globe;
+
+    const globe = Globe()(globeEl)
+      .backgroundColor('rgba(0,0,0,0)')   // keep your fancy CSS background visible
+      .globeImageUrl('https://unpkg.com/three-globe/example/img/earth-blue-marble.jpg')
+      .bumpImageUrl('https://unpkg.com/three-globe/example/img/earth-topology.png')
+      .atmosphereColor('#06b6d4')
+      .atmosphereAltitude(0.14)
+
+      // arcs
+      .arcsData(arcs)
+      .arcColor(d => d.color)
+      .arcAltitude(d => d.alt)
+      .arcStroke(d => d.stroke)
+      .arcDashLength(0.45)
+      .arcDashGap(2)
+      .arcDashAnimateTime(2200)
+
+      // points
+      .pointsData(points)
+      .pointColor(d => d.color)
+      .pointAltitude(0.015)
+      .pointRadius(d => d.r)
+      .pointLabel(d => d.label)
+
+      // polygons (country borders + fills)
+      .polygonsData(polygons)
+      .polygonCapColor(d => d.fill)
+      .polygonSideColor(() => 'rgba(0,0,0,0)')
+      .polygonStrokeColor(d => d.stroke)
+      .polygonAltitude(d => d.alt)
+      .polygonsTransitionDuration(300);
+
+    // make it rotate automatically (globe feel)
+    globe.controls().autoRotate = true;
+    globe.controls().autoRotateSpeed = 0.6;
+    globe.controls().enableDamping = true;
+    globe.controls().dampingFactor = 0.08;
+
+    // set initial view
+    globe.pointOfView({ lat: ORIGIN.lat, lng: ORIGIN.lng, altitude: 2.2 }, 0);
+
+    // add origin point
+    points.push({
+      lat: ORIGIN.lat,
+      lng: ORIGIN.lng,
+      color: '#06b6d4',
+      r: 0.55,
+      label: `ORIGIN: ${ORIGIN.country}`
+    });
+    globe.pointsData(points);
+
+    // --- LOAD COUNTRIES (borders + shapes) ---
+    // Using a public GeoJSON file. No backend changes.
+    async function loadCountries() {
+      try {
+        const res = await fetch('https://raw.githubusercontent.com/holtzy/D3-graph-gallery/master/DATA/world.geojson');
+        const geo = await res.json();
+
+        polygons = geo.features.map(f => ({
+          feature: f,
+          name: (f.properties && (f.properties.name || f.properties.ADMIN || f.properties.admin)) || 'Unknown',
+          fill: 'rgba(6, 182, 212, 0.06)',              // base fill
+          stroke: 'rgba(226,232,240,0.55)',            // base border for every country
+          alt: 0.006                                   // tiny lift so borders are visible
+        }));
+
+        globe.polygonsData(polygons);
+      } catch (e) {
+        console.log("Country borders load failed:", e.message);
+      }
+    }
+    loadCountries();
+
+    function updateCountryListUI() {
+      const el = document.getElementById('country-list');
+      if (activeCountries.size === 0) {
+        el.innerText = 'Waiting for data...';
+      } else {
+        el.innerText = Array.from(activeCountries).join(' // ');
+      }
+    }
+
+    function norm(name) {
+      return String(name || '').trim().toLowerCase();
+    }
+
+    function colorForCountry(kind) {
+      // kind: 'tracker' or 'normal'
+      if (kind === 'tracker') return { fill: 'rgba(244,63,94,0.40)', stroke: 'rgba(244,63,94,0.95)', alt: 0.02 };
+      return { fill: 'rgba(16,185,129,0.33)', stroke: 'rgba(16,185,129,0.95)', alt: 0.018 };
+    }
+
+    function highlightCountry(countryName, kind) {
+      if (!polygons || polygons.length === 0) return;
+      const key = norm(countryName);
+      if (!key) return;
+
+      // if already tracker-highlighted, keep it
+      if (highlighted.has(key)) {
+        const prev = highlighted.get(key);
+        if (prev === 'tracker') return;
+        if (kind === 'tracker') highlighted.set(key, 'tracker');
+      } else {
+        highlighted.set(key, kind);
+      }
+
+      // update polygon styles immutably (Globe.gl re-renders on new array)
+      polygons = polygons.map(p => {
+        const n = norm(p.name);
+        if (n === key) {
+          const style = colorForCountry(highlighted.get(key));
+          return { ...p, ...style };
+        }
+        return p;
+      });
+
+      globe.polygonsData(polygons);
+    }
+
+    function addArcAndPoint(lat, lng, country, isTracker) {
+      const color = isTracker ? '#f43f5e' : '#10b981';
+
+      arcs.push({
+        startLat: ORIGIN.lat,
+        startLng: ORIGIN.lng,
+        endLat: lat,
+        endLng: lng,
+        color: color,
+        alt: isTracker ? 0.32 : 0.26,
+        stroke: isTracker ? 0.9 : 0.7
+      });
+      globe.arcsData(arcs);
+
+      points.push({
+        lat: lat,
+        lng: lng,
+        color: color,
+        r: isTracker ? 0.55 : 0.45,
+        label: `${country}`
+      });
+      globe.pointsData(points);
+    }
+
+    function drawPoint(data) {
+      if (data.geo && data.geo.country && data.geo.lat) {
+        const country = data.geo.country;
+        const lat = data.geo.lat;
+        const lng = data.geo.lon;
+
+        // highlight polygon
+        highlightCountry(country, data.isTracker ? 'tracker' : 'normal');
+
+        // keep your same rule: only show non-India unless tracker
+        if (country !== 'India' || data.isTracker) {
+          if (!activeCountries.has(country)) {
+            activeCountries.add(country);
+            updateCountryListUI();
+          }
+          addArcAndPoint(lat, lng, country, !!data.isTracker);
+        }
+      }
+    }
+
+    socket.on('traffic-update', (data) => { drawPoint(data); });
+
+    // Request history so globe populates immediately
+    socket.on('connect', () => { socket.emit('request-history'); });
+    socket.on('traffic-history', (history) => { history.forEach(d => drawPoint(d)); });
+
+    socket.on('status', (msg) => {
+      if (msg.includes("Initializing") || msg.includes("Scanning")) {
+        // reset UI + data (but keep globe running)
+        activeCountries.clear();
+        updateCountryListUI();
+
+        // reset arcs/points except origin
+        arcs = [];
+        points = [{
+          lat: ORIGIN.lat,
+          lng: ORIGIN.lng,
+          color: '#06b6d4',
+          r: 0.55,
+          label: `ORIGIN: ${ORIGIN.country}`
+        }];
+        globe.arcsData(arcs);
+        globe.pointsData(points);
+
+        // reset highlights
+        highlighted.clear();
+        // restore base styles
+        if (polygons && polygons.length) {
+          polygons = polygons.map(p => ({
+            ...p,
+            fill: 'rgba(6, 182, 212, 0.06)',
+            stroke: 'rgba(226,232,240,0.55)',
+            alt: 0.006
+          }));
+          globe.polygonsData(polygons);
+        }
+
+        document.getElementById('country-list').innerText = 'Scanning...';
+      }
+    });
+  </script>
+</body>
+</html>
