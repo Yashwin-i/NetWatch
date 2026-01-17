@@ -1,6 +1,6 @@
 # NET-WATCH // Digital Sovereignty & Privacy Audit Tool
 
-![Status](https://img.shields.io/badge/Status-Live-success) ![Compliance](https://img.shields.io/badge/Compliance-DPDP%20Act%202023-blue) ![Tech](https://img.shields.io/badge/Engine-Puppeteer%20%7C%20...)
+![Status](https://img.shields.io/badge/Status-Live-success) ![Compliance](https://img.shields.io/badge/Compliance-DPDP%20Act%202023-blue) 
 
 
 ## 🚨 The Problem
